@@ -48,9 +48,6 @@ export default async function Home() {
               <span className="text-[10px] tracking-[.2em] text-white/60">
                 DESIGN / FUNCTION / FEELING
               </span>
-              <span className="flex items-center gap-2 text-xs">
-                Scroll to explore <ArrowDownRight size={16} />
-              </span>
             </div>
           </div>
         </div>
