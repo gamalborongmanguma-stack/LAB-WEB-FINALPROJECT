@@ -1,1 +1,49 @@
-import Link from 'next/link';import AuthForm from '@/components/AuthForm';export default function Login(){return <div className="container-x grid min-h-[680px] items-center gap-12 py-14 md:grid-cols-2"><div className="hidden min-h-[540px] flex-col justify-between bg-[#171815] p-10 text-white md:flex"><div className="text-xl font-black">NEXA<span className="text-lime-300">.</span></div><div><p className="text-xs uppercase tracking-[.25em] text-lime-300">Welcome back</p><h1 className="mt-4 text-5xl font-semibold tracking-[-.05em]">Good things<br/>are waiting.</h1><p className="mt-5 max-w-xs text-sm leading-6 text-white/60">Your next everyday favorite is just around the corner.</p></div><p className="text-[10px] tracking-widest text-white/40">A CONSIDERED MARKETPLACE — 2026</p></div><div className="mx-auto w-full max-w-md"><Link href="/" className="muted text-xs">← Back to home</Link><p className="muted mt-10 text-[10px] font-bold uppercase tracking-[.25em]">Your NEXA account</p><h2 className="mt-3 text-4xl font-semibold tracking-[-.05em]">Sign <span className="font-serif italic font-normal">in.</span></h2><p className="muted mt-3 text-sm">Enter your details to access your account.</p><AuthForm mode="login"/></div></div>}
+import Link from 'next/link';
+import AuthForm from '@/components/AuthForm';
+
+export default function Login() {
+  return (
+    <div className="container-x grid min-h-170 items-center gap-12 py-14 md:grid-cols-2">
+      <div className="hidden min-h-135 flex-col justify-between bg-[#171815] p-10 text-white md:flex">
+        <div className="text-xl font-black">
+          NEXA<span className="text-lime-300">.</span>
+        </div>
+
+        <div>
+          <p className="text-xs uppercase tracking-[.25em] text-lime-300">
+            Welcome back
+          </p>
+          <h1 className="mt-4 text-5xl font-semibold tracking-tighter">
+            Good things
+            <br />
+            are waiting.
+          </h1>
+          <p className="mt-5 max-w-xs text-sm leading-6 text-white/60">
+            Your next everyday favorite is just around the corner.
+          </p>
+        </div>
+
+        <p className="text-[10px] tracking-widest text-white/40">
+          A CONSIDERED MARKETPLACE — 2026
+        </p>
+      </div>
+
+      <div className="mx-auto w-full max-w-md">
+        <Link href="/" className="muted text-xs">
+          ← Back to home
+        </Link>
+        <p className="muted mt-10 text-[10px] font-bold uppercase tracking-[.25em]">
+          Your NEXA account
+        </p>
+        <h2 className="mt-3 text-4xl font-semibold tracking-tighter">
+          Sign <span className="font-serif italic font-normal">in.</span>
+        </h2>
+        <p className="muted mt-3 text-sm">
+          Enter your details to access your account.
+        </p>
+
+        <AuthForm mode="login" />
+      </div>
+    </div>
+  );
+}
