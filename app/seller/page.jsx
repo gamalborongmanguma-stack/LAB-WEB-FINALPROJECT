@@ -1,2 +1,280 @@
-import Link from 'next/link';import {getUser} from '@/lib/auth';import {query} from '@/lib/db';import {money} from '@/lib/data';import {productAction,updateOrderAction,deleteProductAction,storeAction} from '@/lib/actions';import {redirect} from 'next/navigation';
-export default async function Seller(){const user=await getUser();if(!user||user.role!=='seller')redirect('/login');if(user.status!=='approved')redirect('/pending');let products=[],orders=[],categories=[],store=null;try{const s=await query('SELECT id,name,description,image_url FROM stores WHERE owner_id=$1',[user.id]);store=s.rows[0];products=(await query('SELECT p.*,c.name AS category FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.store_id=$1 ORDER BY p.created_at DESC',[s.rows[0]?.id||-1])).rows;orders=(await query('SELECT DISTINCT o.id,o.status,o.total,o.created_at FROM orders o JOIN order_items oi ON oi.order_id=o.id JOIN stores st ON st.id=oi.store_id WHERE st.owner_id=$1 ORDER BY o.created_at DESC',[user.id])).rows;categories=(await query('SELECT id,name FROM categories ORDER BY name')).rows}catch{}return <div className="container-x py-12"><p className="muted text-[10px] font-bold uppercase tracking-[.25em]">Seller workspace</p><h1 className="mt-3 text-5xl font-semibold tracking-[-.06em]">Your <span className="font-serif italic font-normal">store.</span></h1><div className="mt-8 grid gap-4 sm:grid-cols-3"><div className="surface p-5"><p className="muted text-xs">Products</p><p className="mt-2 text-3xl font-semibold">{products.length}</p></div><div className="surface p-5"><p className="muted text-xs">Incoming orders</p><p className="mt-2 text-3xl font-semibold">{orders.length}</p></div><div className="surface p-5"><p className="muted text-xs">Account status</p><p className="mt-2 text-xl font-semibold">Approved</p></div></div><div className="mt-14 grid gap-10 lg:grid-cols-[360px_1fr]"><section><h2 className="text-xl font-semibold">Store information</h2><form action={storeAction} className="mt-5 mb-10 grid gap-3"><input name="name" required defaultValue={store?.name||''} className="input" placeholder="Store name"/><textarea name="description" required defaultValue={store?.description||''} className="input" rows="3" placeholder="Store description"/><input name="image" type="url" defaultValue={store?.image_url||''} className="input" placeholder="Store image URL"/><button className="btn-primary">Save store</button></form><h2 className="text-xl font-semibold">Add a product</h2><form action={productAction} className="mt-5 grid gap-3"><input name="name" required className="input" placeholder="Product name"/><textarea name="description" required className="input" rows="3" placeholder="Description"/><input name="price" required type="number" min="1" className="input" placeholder="Price (IDR)"/><input name="stock" required type="number" min="0" className="input" placeholder="Stock"/><select name="category" required className="input"><option value="">Select category</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select><input name="image" required type="url" className="input" placeholder="Image URL (https://...)"/><button className="btn-primary">Publish product</button></form></section><section><h2 className="text-xl font-semibold">Your products</h2><div className="mt-5">{products.map(p=><div key={p.id} className="border-b py-4" style={{borderColor:'var(--line)'}}><form action={productAction} className="grid gap-2 sm:grid-cols-2"><input type="hidden" name="id" value={p.id}/><input name="name" defaultValue={p.name} required className="input"/><input name="description" defaultValue={p.description} required className="input"/><input name="price" type="number" defaultValue={p.price} required className="input"/><input name="stock" type="number" defaultValue={p.stock} required className="input"/><select name="category" defaultValue={p.category_id} className="input">{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select><input name="image" type="url" defaultValue={p.image_url} required className="input"/><button className="pill sm:col-span-2 sm:justify-self-end">Save changes</button></form><form action={deleteProductAction} className="mt-2 text-right"><input type="hidden" name="productId" value={p.id}/><button className="text-xs text-red-500 underline">Delete product</button></form></div>)}{!products.length&&<p className="muted py-8 text-sm">No products yet. Add your first product.</p>}</div><h2 className="mt-12 text-xl font-semibold">Incoming orders</h2><div className="mt-5">{orders.map(o=><div key={o.id} className="flex flex-wrap items-center justify-between gap-3 border-b py-4" style={{borderColor:'var(--line)'}}><div><p className="text-sm font-semibold">Order #{o.id}</p><p className="muted mt-1 text-xs">{money(o.total)} · {o.status}</p></div><form action={updateOrderAction} className="flex gap-2"><input type="hidden" name="orderId" value={o.id}/><select name="status" className="input w-32"><option>Diproses</option><option>Dikirim</option><option>Selesai</option></select><button className="pill">Update</button></form></div>)}{!orders.length&&<p className="muted py-8 text-sm">No incoming orders.</p>}</div></section></div></div>}
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { getUser } from '@/lib/auth';
+import { query } from '@/lib/db';
+import { money } from '@/lib/data';
+import {
+  productAction,
+  updateOrderAction,
+  deleteProductAction,
+  storeAction,
+} from '@/lib/actions';
+
+export default async function Seller() {
+  const user = await getUser();
+  if (!user || user.role !== 'seller') redirect('/login');
+  if (user.status !== 'approved') redirect('/pending');
+
+  let products = [];
+  let orders = [];
+  let categories = [];
+  let store = null;
+
+  try {
+    const storeResult = await query(
+      'SELECT id,name,description,image_url FROM stores WHERE owner_id=$1',
+      [user.id]
+    );
+    store = storeResult.rows[0] || null;
+
+    const productsResult = await query(
+      `SELECT p.*,c.name AS category
+       FROM products p
+       LEFT JOIN categories c ON c.id=p.category_id
+       WHERE p.store_id=$1
+       ORDER BY p.created_at DESC`,
+      [store?.id || -1]
+    );
+    products = productsResult.rows;
+
+    const ordersResult = await query(
+      `SELECT DISTINCT o.id,o.status,o.total,o.created_at
+       FROM orders o
+       JOIN order_items oi ON oi.order_id=o.id
+       JOIN stores st ON st.id=oi.store_id
+       WHERE st.owner_id=$1
+       ORDER BY o.created_at DESC`,
+      [user.id]
+    );
+    orders = ordersResult.rows;
+
+    const categoriesResult = await query(
+      'SELECT id,name FROM categories ORDER BY name'
+    );
+    categories = categoriesResult.rows;
+  } catch {}
+
+  return (
+    <div className="container-x py-12">
+      <p className="muted text-[10px] font-bold uppercase tracking-[.25em]">
+        Seller workspace
+      </p>
+      <h1 className="mt-3 text-5xl font-semibold tracking-[-.06em]">
+        Your <span className="font-serif italic font-normal">store.</span>
+      </h1>
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div className="surface p-5">
+          <p className="muted text-xs">Products</p>
+          <p className="mt-2 text-3xl font-semibold">{products.length}</p>
+        </div>
+        <div className="surface p-5">
+          <p className="muted text-xs">Incoming orders</p>
+          <p className="mt-2 text-3xl font-semibold">{orders.length}</p>
+        </div>
+        <div className="surface p-5">
+          <p className="muted text-xs">Account status</p>
+          <p className="mt-2 text-xl font-semibold">Approved</p>
+        </div>
+      </div>
+
+      <div className="mt-14 grid gap-10 lg:grid-cols-[360px_1fr]">
+        <section>
+          <h2 className="text-xl font-semibold">Store information</h2>
+          <form action={storeAction} className="mt-5 mb-10 grid gap-3">
+            <input
+              name="name"
+              required
+              defaultValue={store?.name || ''}
+              className="input"
+              placeholder="Store name"
+            />
+            <textarea
+              name="description"
+              required
+              defaultValue={store?.description || ''}
+              className="input"
+              rows="3"
+              placeholder="Store description"
+            />
+            <input
+              name="image"
+              type="url"
+              defaultValue={store?.image_url || ''}
+              className="input"
+              placeholder="Store image URL"
+            />
+            <button type="submit" className="btn-primary">
+              Save store
+            </button>
+          </form>
+
+          <h2 className="text-xl font-semibold">Add a product</h2>
+          <form action={productAction} className="mt-5 grid gap-3">
+            <input
+              name="name"
+              required
+              className="input"
+              placeholder="Product name"
+            />
+            <textarea
+              name="description"
+              required
+              className="input"
+              rows="3"
+              placeholder="Description"
+            />
+            <input
+              name="price"
+              required
+              type="number"
+              min="1"
+              className="input"
+              placeholder="Price (IDR)"
+            />
+            <input
+              name="stock"
+              required
+              type="number"
+              min="0"
+              className="input"
+              placeholder="Stock"
+            />
+            <select name="category" required className="input">
+              <option value="">Select category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <input
+              name="image"
+              required
+              type="url"
+              className="input"
+              placeholder="Image URL (https://...)"
+            />
+            <button type="submit" className="btn-primary">
+              Publish product
+            </button>
+          </form>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold">Your products</h2>
+          <div className="mt-5">
+            {products.map((product) => (
+              <div
+                key={product.id}
+                className="border-b py-4"
+                style={{ borderColor: 'var(--line)' }}
+              >
+                <form action={productAction} className="grid gap-2 sm:grid-cols-2">
+                  <input type="hidden" name="id" value={product.id} />
+                  <input
+                    name="name"
+                    defaultValue={product.name}
+                    required
+                    className="input"
+                  />
+                  <input
+                    name="description"
+                    defaultValue={product.description}
+                    required
+                    className="input"
+                  />
+                  <input
+                    name="price"
+                    type="number"
+                    defaultValue={product.price}
+                    required
+                    className="input"
+                  />
+                  <input
+                    name="stock"
+                    type="number"
+                    defaultValue={product.stock}
+                    required
+                    className="input"
+                  />
+                  <select
+                    name="category"
+                    defaultValue={product.category_id}
+                    className="input"
+                  >
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    name="image"
+                    type="url"
+                    defaultValue={product.image_url}
+                    required
+                    className="input"
+                  />
+                  <button
+                    type="submit"
+                    className="pill sm:col-span-2 sm:justify-self-end"
+                  >
+                    Save changes
+                  </button>
+                </form>
+
+                <form action={deleteProductAction} className="mt-2 text-right">
+                  <input type="hidden" name="productId" value={product.id} />
+                  <button type="submit" className="text-xs text-red-500 underline">
+                    Delete product
+                  </button>
+                </form>
+              </div>
+            ))}
+
+            {!products.length && (
+              <p className="muted py-8 text-sm">
+                No products yet. Add your first product.
+              </p>
+            )}
+          </div>
+
+          <h2 className="mt-12 text-xl font-semibold">Incoming orders</h2>
+          <div className="mt-5">
+            {orders.map((order) => (
+              <div
+                key={order.id}
+                className="flex flex-wrap items-center justify-between gap-3 border-b py-4"
+                style={{ borderColor: 'var(--line)' }}
+              >
+                <div>
+                  <p className="text-sm font-semibold">Order #{order.id}</p>
+                  <p className="muted mt-1 text-xs">
+                    {money(order.total)} · {order.status}
+                  </p>
+                </div>
+
+                <form action={updateOrderAction} className="flex gap-2">
+                  <input type="hidden" name="orderId" value={order.id} />
+                  <select name="status" className="input w-32">
+                    <option>Diproses</option>
+                    <option>Dikirim</option>
+                    <option>Selesai</option>
+                  </select>
+                  <button type="submit" className="pill">
+                    Update
+                  </button>
+                </form>
+              </div>
+            ))}
+
+            {!orders.length && (
+              <p className="muted py-8 text-sm">No incoming orders.</p>
+            )}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
