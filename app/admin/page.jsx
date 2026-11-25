@@ -1,2 +1,253 @@
-import {redirect} from 'next/navigation';import {getUser} from '@/lib/auth';import {query} from '@/lib/db';import {sellerDecisionAction,categoryAction,adminUserAction,deleteUserAction,deleteCategoryAction,adminDeleteProductAction,updateCategoryAction} from '@/lib/actions';
-export default async function Admin(){const user=await getUser();if(!user||user.role!=='admin')redirect('/login');let sellers=[],users=[],cats=[],prods=[],stats={};try{[sellers,users,cats,prods]=await Promise.all([query("SELECT id,name,email,status FROM users WHERE role='seller' ORDER BY created_at DESC"),query('SELECT id,name,email,role,status FROM users ORDER BY created_at DESC'),query('SELECT id,name FROM categories ORDER BY name'),query('SELECT p.id,p.name,p.price,u.name AS seller FROM products p JOIN stores s ON s.id=p.store_id JOIN users u ON u.id=s.owner_id ORDER BY p.created_at DESC')]);const r=await query('SELECT (SELECT COUNT(*) FROM users) users,(SELECT COUNT(*) FROM products) products,(SELECT COUNT(*) FROM orders) orders');stats=r.rows[0]}catch{}return <div className="container-x py-12"><p className="muted text-[10px] font-bold uppercase tracking-[.25em]">Platform control</p><h1 className="mt-3 text-5xl font-semibold tracking-[-.06em]">Admin <span className="font-serif italic font-normal">overview.</span></h1><div className="mt-8 grid gap-4 sm:grid-cols-3">{[['Users',stats.users||0],['Products',stats.products||0],['Orders',stats.orders||0]].map(([n,v])=><div key={n} className="surface p-6"><p className="muted text-xs">{n}</p><p className="mt-2 text-3xl font-semibold">{v}</p></div>)}</div><div className="mt-14 grid gap-12 lg:grid-cols-2"><section><h2 className="text-xl font-semibold">Seller verification</h2><div className="mt-5">{sellers.rows?.filter(s=>s.status==='pending').map(s=><div key={s.id} className="flex flex-wrap items-center justify-between gap-3 border-b py-4" style={{borderColor:'var(--line)'}}><div><p className="text-sm font-semibold">{s.name}</p><p className="muted mt-1 text-xs">{s.email}</p></div><div className="flex gap-2">{['approved','rejected'].map(status=><form key={status} action={sellerDecisionAction}><input type="hidden" name="userId" value={s.id}/><input type="hidden" name="status" value={status}/><button className="pill">{status==='approved'?'Approve':'Reject'}</button></form>)}</div></div>)}{!sellers.rows?.some(s=>s.status==='pending')&&<p className="muted py-8 text-sm">No seller applications waiting.</p>}</div></section><section><h2 className="text-xl font-semibold">Category management</h2><form action={categoryAction} className="mt-5 flex gap-2"><input name="name" required className="input" placeholder="New category name"/><button className="btn-primary shrink-0">Add</button></form><div className="mt-5">{cats.rows?.map(c=><div key={c.id} className="flex items-center justify-between border-b py-3 text-sm" style={{borderColor:'var(--line)'}}><form action={updateCategoryAction} className="flex flex-1 gap-2"><input type="hidden" name="categoryId" value={c.id}/><input name="name" defaultValue={c.name} className="input"/><button className="pill">Save</button></form><form action={deleteCategoryAction}><input type="hidden" name="categoryId" value={c.id}/><button className="text-xs text-red-500 underline">Delete</button></form></div>)}</div></section></div><section className="mt-14"><h2 className="text-xl font-semibold">Product moderation</h2><div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{prods.rows?.map(p=><div key={p.id} className="surface flex items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">{p.name}</p><p className="muted mt-1 text-xs">Seller: {p.seller}</p></div><form action={adminDeleteProductAction}><input type="hidden" name="productId" value={p.id}/><button className="text-xs text-red-500 underline">Remove</button></form></div>)}</div></section><section className="mt-14"><h2 className="text-xl font-semibold">User management</h2><div className="mt-5 overflow-x-auto"><table className="w-full text-left text-sm"><thead className="muted text-xs"><tr><th className="py-3">Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead><tbody>{users.rows?.map(u=><tr key={u.id} className="border-t" style={{borderColor:'var(--line)'}}><td colSpan={4} className="py-3"><div className="flex flex-wrap items-center justify-between gap-3"><form action={adminUserAction} className="grid flex-1 gap-2 sm:grid-cols-4"><input type="hidden" name="userId" value={u.id}/><input name="name" defaultValue={u.name} className="input"/><input name="email" defaultValue={u.email} className="input"/><select name="status" defaultValue={u.status} className="input"><option value="approved">Approved</option><option value="pending">Pending</option><option value="rejected">Rejected</option></select><button className="pill">Save · {u.role}</button></form>{u.id!==Number(user.id)&&u.role!=='admin'&&<form action={deleteUserAction}><input type="hidden" name="userId" value={u.id}/><button className="text-xs text-red-500 underline">Delete</button></form>}</div></td></tr>)}</tbody></table></div></section></div>}
+import { redirect } from 'next/navigation';
+import { getUser } from '@/lib/auth';
+import { query } from '@/lib/db';
+import {
+  sellerDecisionAction,
+  categoryAction,
+  adminUserAction,
+  deleteUserAction,
+  deleteCategoryAction,
+  adminDeleteProductAction,
+  updateCategoryAction,
+} from '@/lib/actions';
+
+export default async function Admin() {
+  const user = await getUser();
+  if (!user || user.role !== 'admin') redirect('/login');
+
+  let sellers = [];
+  let users = [];
+  let categories = [];
+  let products = [];
+  let stats = {};
+
+  try {
+    const [sellersRes, usersRes, catsRes, prodsRes] = await Promise.all([
+      query(
+        "SELECT id,name,email,status FROM users WHERE role='seller' ORDER BY created_at DESC"
+      ),
+      query('SELECT id,name,email,role,status FROM users ORDER BY created_at DESC'),
+      query('SELECT id,name FROM categories ORDER BY name'),
+      query(
+        `SELECT p.id,p.name,p.price,u.name AS seller
+         FROM products p
+         JOIN stores s ON s.id=p.store_id
+         JOIN users u ON u.id=s.owner_id
+         ORDER BY p.created_at DESC`
+      ),
+    ]);
+
+    sellers = sellersRes.rows;
+    users = usersRes.rows;
+    categories = catsRes.rows;
+    products = prodsRes.rows;
+
+    const statsRes = await query(
+      `SELECT
+        (SELECT COUNT(*) FROM users) users,
+        (SELECT COUNT(*) FROM products) products,
+        (SELECT COUNT(*) FROM orders) orders`
+    );
+    stats = statsRes.rows[0] || {};
+  } catch {}
+
+  const pendingSellers = sellers.filter((s) => s.status === 'pending');
+
+  const summaryCards = [
+    ['Users', stats.users || 0],
+    ['Products', stats.products || 0],
+    ['Orders', stats.orders || 0],
+  ];
+
+  return (
+    <div className="container-x py-12">
+      <p className="muted text-[10px] font-bold uppercase tracking-[.25em]">
+        Platform control
+      </p>
+      <h1 className="mt-3 text-5xl font-semibold tracking-[-.06em]">
+        Admin <span className="font-serif italic font-normal">overview.</span>
+      </h1>
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        {summaryCards.map(([label, value]) => (
+          <div key={label} className="surface p-6">
+            <p className="muted text-xs">{label}</p>
+            <p className="mt-2 text-3xl font-semibold">{value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-14 grid gap-12 lg:grid-cols-2">
+        <section>
+          <h2 className="text-xl font-semibold">Seller verification</h2>
+          <div className="mt-5">
+            {pendingSellers.map((seller) => (
+              <div
+                key={seller.id}
+                className="flex flex-wrap items-center justify-between gap-3 border-b py-4"
+                style={{ borderColor: 'var(--line)' }}
+              >
+                <div>
+                  <p className="text-sm font-semibold">{seller.name}</p>
+                  <p className="muted mt-1 text-xs">{seller.email}</p>
+                </div>
+
+                <div className="flex gap-2">
+                  {['approved', 'rejected'].map((status) => (
+                    <form key={status} action={sellerDecisionAction}>
+                      <input type="hidden" name="userId" value={seller.id} />
+                      <input type="hidden" name="status" value={status} />
+                      <button type="submit" className="pill">
+                        {status === 'approved' ? 'Approve' : 'Reject'}
+                      </button>
+                    </form>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {!pendingSellers.length && (
+              <p className="muted py-8 text-sm">
+                No seller applications waiting.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold">Category management</h2>
+          <form action={categoryAction} className="mt-5 flex gap-2">
+            <input
+              name="name"
+              required
+              className="input"
+              placeholder="New category name"
+            />
+            <button type="submit" className="btn-primary shrink-0">
+              Add
+            </button>
+          </form>
+
+          <div className="mt-5">
+            {categories.map((cat) => (
+              <div
+                key={cat.id}
+                className="flex items-center justify-between border-b py-3 text-sm"
+                style={{ borderColor: 'var(--line)' }}
+              >
+                <form action={updateCategoryAction} className="flex flex-1 gap-2">
+                  <input type="hidden" name="categoryId" value={cat.id} />
+                  <input name="name" defaultValue={cat.name} className="input" />
+                  <button type="submit" className="pill">
+                    Save
+                  </button>
+                </form>
+
+                <form action={deleteCategoryAction}>
+                  <input type="hidden" name="categoryId" value={cat.id} />
+                  <button type="submit" className="text-xs text-red-500 underline">
+                    Delete
+                  </button>
+                </form>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <section className="mt-14">
+        <h2 className="text-xl font-semibold">Product moderation</h2>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="surface flex items-center justify-between gap-3 p-4"
+            >
+              <div>
+                <p className="text-sm font-semibold">{product.name}</p>
+                <p className="muted mt-1 text-xs">Seller: {product.seller}</p>
+              </div>
+
+              <form action={adminDeleteProductAction}>
+                <input type="hidden" name="productId" value={product.id} />
+                <button type="submit" className="text-xs text-red-500 underline">
+                  Remove
+                </button>
+              </form>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-14">
+        <h2 className="text-xl font-semibold">User management</h2>
+        <div className="mt-5 overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="muted text-xs">
+              <tr>
+                <th className="py-3">Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((item) => (
+                <tr
+                  key={item.id}
+                  className="border-t"
+                  style={{ borderColor: 'var(--line)' }}
+                >
+                  <td colSpan={4} className="py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <form
+                        action={adminUserAction}
+                        className="grid flex-1 gap-2 sm:grid-cols-4"
+                      >
+                        <input type="hidden" name="userId" value={item.id} />
+                        <input
+                          name="name"
+                          defaultValue={item.name}
+                          className="input"
+                        />
+                        <input
+                          name="email"
+                          defaultValue={item.email}
+                          className="input"
+                        />
+                        <select
+                          name="status"
+                          defaultValue={item.status}
+                          className="input"
+                        >
+                          <option value="approved">Approved</option>
+                          <option value="pending">Pending</option>
+                          <option value="rejected">Rejected</option>
+                        </select>
+                        <button type="submit" className="pill">
+                          Save · {item.role}
+                        </button>
+                      </form>
+
+                      {item.id !== Number(user.id) && item.role !== 'admin' && (
+                        <form action={deleteUserAction}>
+                          <input type="hidden" name="userId" value={item.id} />
+                          <button
+                            type="submit"
+                            className="text-xs text-red-500 underline"
+                          >
+                            Delete
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
