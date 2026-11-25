@@ -18,7 +18,7 @@ Website e-commerce dengan tema visual **Dark & Light Modern Luxury Marketplace**
 5. Buka Query Tool pada database tersebut, lalu jalankan seluruh isi file `sql/schema.sql`.
 6. Salin `.env.example` menjadi `.env.local`, kemudian sesuaikan `DATABASE_URL` dan `JWT_SECRET`.
    ```env
-   DATABASE_URL=postgresql://postgres:password@localhost:5432/nexa_market
+   DATABASE_URL=postgresql://postgres:password@localhost:5432/Nama_Database
    JWT_SECRET=ganti_dengan_secret_random_minimal_32_karakter
    NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
