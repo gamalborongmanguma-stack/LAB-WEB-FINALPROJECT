@@ -1,5 +1,162 @@
-import Link from 'next/link';import {ArrowDownRight,ArrowUpRight,MoveUpRight} from 'lucide-react';import {getProducts} from '@/lib/data';import ProductCard from '@/components/ProductCard';import Reveal from '@/components/Reveal';
-export default async function Home(){const products=await getProducts();return <><section className="container-x pt-8"><div className="relative min-h-[590px] overflow-hidden rounded-[4px] bg-[#171815] text-white"><img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=2000&q=90" className="absolute inset-0 h-full w-full object-cover opacity-55" alt="Editorial fashion collection"/><div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/25 to-transparent"/><div className="relative flex min-h-[590px] flex-col justify-between p-8 sm:p-14 lg:p-20"><div className="flex items-center gap-3 text-[10px] uppercase tracking-[.28em]"><span className="h-px w-8 bg-lime-300"/> Curated for the everyday</div><div className="max-w-[680px]"><Reveal><p className="mb-5 text-xs uppercase tracking-[.3em] text-lime-300">Objects with intention — 2026 collection</p><h1 className="text-5xl leading-[.98] font-semibold tracking-[-.055em] sm:text-7xl lg:text-[88px]">Find your<br/><span className="font-serif font-normal italic">everyday</span> better.</h1><p className="mt-7 max-w-md text-sm leading-7 text-white/75">Discover thoughtful essentials, timeless design, and pieces that bring a little more meaning to the everyday.</p></Reveal><div className="mt-9 flex flex-wrap gap-3"><Link href="/products" className="btn-accent inline-flex items-center gap-3">Explore collection <MoveUpRight size={16}/></Link><Link href="#about" className="rounded-full border border-white/40 px-5 py-3 text-xs font-semibold transition hover:bg-white hover:text-black">Our philosophy</Link></div></div><div className="flex items-end justify-between"><span className="text-[10px] tracking-[.2em] text-white/60">DESIGN / FUNCTION / FEELING</span><span className="flex items-center gap-2 text-xs">Scroll to explore <ArrowDownRight size={16}/></span></div></div></div></section>
-<section className="container-x section-space" id="categories"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="muted text-[10px] font-bold uppercase tracking-[.25em]">Browse by interest</p><h2 className="mt-3 text-4xl font-semibold tracking-[-.05em] sm:text-5xl">A little bit of <span className="font-serif italic font-normal">everything.</span></h2></div><Link href="/products" className="inline-flex items-center gap-2 text-xs font-bold">View all categories <ArrowUpRight size={15}/></Link></div><div className="mt-9 grid grid-cols-2 gap-3 md:grid-cols-4">{[{name:'Electronics',sub:'Made to connect',img:'photo-1498049794561-7780e7231661',cat:'Elektronik'},{name:'Fashion',sub:'Wear it your way',img:'photo-1483985988355-763728e1935b',cat:'Fashion'},{name:'Home & Living',sub:'Space to slow down',img:'photo-1600210492486-724fe5c67fb0',cat:'Rumah & Living'},{name:'Accessories',sub:'The finishing touch',img:'photo-1523275335684-37898b6baf30',cat:'Aksesori'}].map((c,i)=><Link key={c.name} href={`/products?category=${encodeURIComponent(c.cat)}`} className="group relative aspect-[.88] overflow-hidden bg-neutral-200"><img src={`https://images.unsplash.com/${c.img}?auto=format&fit=crop&w=800&q=85`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" alt={c.name}/><div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent"/><div className="absolute bottom-5 left-5 text-white"><p className="text-lg font-semibold">{c.name}</p><p className="mt-1 text-[11px] text-white/70">{c.sub}</p></div><span className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white text-black"><ArrowUpRight size={16}/></span></Link>)}</div></section>
-<section className="container-x pb-24"><div className="flex flex-col justify-between gap-5 border-b pb-5 sm:flex-row sm:items-end" style={{borderColor:'var(--line)'}}><div><p className="muted text-[10px] font-bold uppercase tracking-[.25em]">Handpicked for you</p><h2 className="mt-3 text-4xl font-semibold tracking-[-.05em]">The latest <span className="font-serif italic font-normal">edit.</span></h2></div><Link href="/products" className="text-xs font-bold underline underline-offset-4">Shop all products ↗</Link></div><div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-9 md:grid-cols-4 md:gap-x-6">{products.slice(0,8).map((p,i)=><ProductCard key={p.id} product={p} index={i}/>)}</div></section>
-<section id="about" className="overflow-hidden py-20" style={{background:'var(--ink)',color:'var(--bg)'}}><div className="container-x grid items-center gap-10 md:grid-cols-2"><div><p className="text-[10px] font-bold uppercase tracking-[.25em] text-lime-400">Less, but considered</p><h2 className="mt-5 text-5xl leading-[1.02] font-semibold tracking-[-.05em] sm:text-6xl">Good things.<br/><span className="font-serif font-normal italic">Good everyday.</span></h2><p className="mt-6 max-w-md text-sm leading-7 opacity-65">We believe the things we use every day should be thoughtfully made, useful, and a joy to live with. NEXA brings those finds together in one place.</p><Link href="/products" className="btn-accent mt-8 inline-flex items-center gap-3">Discover NEXA <ArrowUpRight size={16}/></Link></div><div className="relative"><img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1000&q=90" alt="Thoughtful living space" className="aspect-[1.2] w-full object-cover"/><div className="absolute -bottom-5 -left-5 hidden bg-lime-300 p-6 text-black sm:block"><p className="text-3xl font-semibold tracking-tighter">01—04</p><p className="mt-1 text-[9px] uppercase tracking-widest">The everyday edit</p></div></div></div></section><div className="overflow-hidden py-5" style={{borderBottom:'1px solid var(--line)'}}><div className="marquee flex w-max gap-10 text-xs font-bold uppercase tracking-[.25em] opacity-50">{Array.from({length:8}).map((_,i)=><span key={i}>Thoughtful design ✳ Everyday essentials ✳ Made to matter ✳</span>)}</div></div></>}
+import Link from 'next/link';
+import { ArrowDownRight, ArrowUpRight, MoveUpRight } from 'lucide-react';
+import { getProducts } from '@/lib/data';
+import ProductCard from '@/components/ProductCard';
+import Reveal from '@/components/Reveal';
+import HeroSlideshow from '@/components/HeroSlideshow';
+
+export default async function Home() {
+  const products = await getProducts();
+
+  return (
+    <>
+      <section className="container-x pt-8">
+        <div className="relative min-h-[590px] overflow-hidden rounded-[4px] bg-[#171815] text-white">
+          <HeroSlideshow />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/25 to-transparent" />
+          <div className="relative flex min-h-[590px] flex-col justify-between p-8 sm:p-14 lg:p-20">
+            <div className="flex items-center gap-3 text-[10px] uppercase tracking-[.28em]">
+              <span className="h-px w-8 bg-lime-300" /> Curated for the everyday
+            </div>
+            <div className="max-w-[680px]">
+              <Reveal>
+                <p className="mb-5 text-xs uppercase tracking-[.3em] text-lime-300">
+                  Objects with intention — 2026 collection
+                </p>
+                <h1 className="text-5xl leading-[.98] font-semibold tracking-[-.055em] sm:text-7xl lg:text-[88px]">
+                  Find your
+                  <br />
+                  <span className="font-serif font-normal italic">everyday</span> better.
+                </h1>
+                <p className="mt-7 max-w-md text-sm leading-7 text-white/75">
+                  Discover thoughtful essentials, timeless design, and pieces that bring a little more meaning to the everyday.
+                </p>
+              </Reveal>
+              <div className="mt-9 flex flex-wrap gap-3">
+                <Link href="/products" className="btn-accent inline-flex items-center gap-3">
+                  Explore collection <MoveUpRight size={16} />
+                </Link>
+                <Link
+                  href="#about"
+                  className="rounded-full border border-white/40 px-5 py-3 text-xs font-semibold transition hover:bg-white hover:text-black"
+                >
+                  Our philosophy
+                </Link>
+              </div>
+            </div>
+            <div className="flex items-end justify-between">
+              <span className="text-[10px] tracking-[.2em] text-white/60">
+                DESIGN / FUNCTION / FEELING
+              </span>
+              <span className="flex items-center gap-2 text-xs">
+                Scroll to explore <ArrowDownRight size={16} />
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container-x section-space" id="categories">
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+          <div>
+            <p className="muted text-[10px] font-bold uppercase tracking-[.25em]">Browse by interest</p>
+            <h2 className="mt-3 text-4xl font-semibold tracking-[-.05em] sm:text-5xl">
+              A little bit of <span className="font-serif italic font-normal">everything.</span>
+            </h2>
+          </div>
+          <Link href="/products" className="inline-flex items-center gap-2 text-xs font-bold">
+            View all categories <ArrowUpRight size={15} />
+          </Link>
+        </div>
+        <div className="mt-9 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            { name: 'Electronics', sub: 'Made to connect', img: 'photo-1498049794561-7780e7231661', cat: 'Elektronik' },
+            { name: 'Fashion', sub: 'Wear it your way', img: 'photo-1483985988355-763728e1935b', cat: 'Fashion' },
+            { name: 'Home & Living', sub: 'Space to slow down', img: 'photo-1600210492486-724fe5c67fb0', cat: 'Rumah & Living' },
+            { name: 'Accessories', sub: 'The finishing touch', img: 'photo-1523275335684-37898b6baf30', cat: 'Aksesori' },
+          ].map((c) => (
+            <Link
+              key={c.name}
+              href={`/products?category=${encodeURIComponent(c.cat)}`}
+              className="group relative aspect-[.88] overflow-hidden bg-neutral-200"
+            >
+              <img
+                src={`https://images.unsplash.com/${c.img}?auto=format&fit=crop&w=800&q=85`}
+                className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                alt={c.name}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+              <div className="absolute bottom-5 left-5 text-white">
+                <p className="text-lg font-semibold">{c.name}</p>
+                <p className="mt-1 text-[11px] text-white/70">{c.sub}</p>
+              </div>
+              <span className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white text-black">
+                <ArrowUpRight size={16} />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="container-x pb-24">
+        <div
+          className="flex flex-col justify-between gap-5 border-b pb-5 sm:flex-row sm:items-end"
+          style={{ borderColor: 'var(--line)' }}
+        >
+          <div>
+            <p className="muted text-[10px] font-bold uppercase tracking-[.25em]">Handpicked for you</p>
+            <h2 className="mt-3 text-4xl font-semibold tracking-[-.05em]">
+              The latest <span className="font-serif italic font-normal">edit.</span>
+            </h2>
+          </div>
+          <Link href="/products" className="text-xs font-bold underline underline-offset-4">
+            Shop all products ↗
+          </Link>
+        </div>
+        <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-9 md:grid-cols-4 md:gap-x-6">
+          {products.slice(0, 8).map((p, i) => (
+            <ProductCard key={p.id} product={p} index={i} />
+          ))}
+        </div>
+      </section>
+
+      <section id="about" className="overflow-hidden py-20" style={{ background: 'var(--ink)', color: 'var(--bg)' }}>
+        <div className="container-x grid items-center gap-10 md:grid-cols-2">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[.25em] text-lime-400">Less, but considered</p>
+            <h2 className="mt-5 text-5xl leading-[1.02] font-semibold tracking-[-.05em] sm:text-6xl">
+              Good things.
+              <br />
+              <span className="font-serif font-normal italic">Good everyday.</span>
+            </h2>
+            <p className="mt-6 max-w-md text-sm leading-7 opacity-65">
+              We believe the things we use every day should be thoughtfully made, useful, and a joy to live with. NEXA brings those finds together in one place.
+            </p>
+            <Link href="/products" className="btn-accent mt-8 inline-flex items-center gap-3">
+              Discover NEXA <ArrowUpRight size={16} />
+            </Link>
+          </div>
+          <div className="relative">
+            <img
+              src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1000&q=90"
+              alt="Thoughtful living space"
+              className="aspect-[1.2] w-full object-cover"
+            />
+            <div className="absolute -bottom-5 -left-5 hidden bg-lime-300 p-6 text-black sm:block">
+              <p className="text-3xl font-semibold tracking-tighter">01—04</p>
+              <p className="mt-1 text-[9px] uppercase tracking-widest">The everyday edit</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="overflow-hidden py-5" style={{ borderBottom: '1px solid var(--line)' }}>
+        <div className="marquee flex w-max gap-10 text-xs font-bold uppercase tracking-[.25em] opacity-50">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <span key={i}>Thoughtful design ✳ Everyday essentials ✳ Made to matter ✳</span>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
