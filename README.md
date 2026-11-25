@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-## Menjalankan
-1. Buat database kosong `silvera` di pgAdmin, lalu jalankan `database/schema.sql` (Query Tool).
-2. `cp .env.example .env` dan sesuaikan `DATABASE_URL` + `AUTH_SECRET`.
-3. `npm install && npm run dev` → http://localhost:3000
-=======
 # NEXA — E-Commerce Marketplace
 
 Website e-commerce dengan tema visual **Dark & Light Modern Luxury Marketplace**, dibuat menggunakan Next.js App Router, JSX, Tailwind CSS, Framer Motion, PostgreSQL, dan Raw SQL.
@@ -33,7 +27,6 @@ Website e-commerce dengan tema visual **Dark & Light Modern Luxury Marketplace**
    npm run dev
    ```
 8. Buka `http://localhost:3000`.
->>>>>>> 36d6449 (Revisi website 2)
 
 ## 3. Akun demo
 - Admin: `admin@nexa.local`
