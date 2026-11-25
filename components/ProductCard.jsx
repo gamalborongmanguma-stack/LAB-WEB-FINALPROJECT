@@ -1,24 +1,2 @@
-import Link from 'next/link';
-import { rupiah } from '@/lib/format';
-import { Stars } from '@/components/ui';
-import AddToCart from '@/components/AddToCart';
-
-export default function ProductCard({ p, user }) {
-  return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-panel/80 transition hover:border-silver-400">
-      <Link href={`/products/${p.id}`} className="block aspect-square overflow-hidden bg-gradient-to-br from-line to-ink">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={p.image_url} alt={p.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-      </Link>
-      <div className="flex flex-1 flex-col gap-1.5 p-4">
-        <span className="text-xs text-silver-500">{p.category || 'Tanpa kategori'} · {p.store_name}</span>
-        <Link href={`/products/${p.id}`} className="line-clamp-2 font-semibold leading-snug hover:text-white">{p.name}</Link>
-        <div className="flex items-center gap-2 text-xs text-silver-400">
-          {p.rating ? <><Stars value={p.rating} /> {Number(p.rating)}</> : 'Belum ada ulasan'}
-        </div>
-        <p className="mt-auto pt-2 text-lg font-bold silver-text">{rupiah(p.price)}</p>
-        <div className="pt-2"><AddToCart user={user} product={p} /></div>
-      </div>
-    </article>
-  );
-}
+import Link from 'next/link';import {ArrowUpRight,Star} from 'lucide-react';import {money} from '@/lib/data';
+export default function ProductCard({product,index=0}){return <article className="product-card reveal group" style={{animationDelay:`${index*70}ms`}}><Link href={`/products/${product.id}`}><div className="product-image relative aspect-[4/4.7] rounded-[3px]"><img src={product.image} alt={product.name} className="h-full w-full object-cover"/><span className="absolute left-3 top-3 bg-white/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-black">{product.category||'Essentials'}</span><span className="absolute bottom-3 right-3 grid h-10 w-10 translate-y-2 place-items-center rounded-full bg-white text-black opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100"><ArrowUpRight size={18}/></span></div><div className="flex items-start justify-between gap-2 pt-4"><div><h3 className="text-[14px] font-semibold">{product.name}</h3><p className="muted mt-1 text-xs">{product.store_name||'Nexa Store'}</p></div><div className="text-right"><p className="text-[13px] font-semibold">{money(product.price)}</p><p className="muted mt-1 flex items-center justify-end gap-1 text-[10px]"><Star size={10} fill="currentColor"/>{product.rating||'4.8'}</p></div></div></Link></article>}
