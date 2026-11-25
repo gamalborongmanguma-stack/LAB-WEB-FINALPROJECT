@@ -1,76 +1,101 @@
-CREATE TABLE IF NOT EXISTS users (
-  id BIGSERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(180) NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
-  role VARCHAR(20) NOT NULL DEFAULT 'customer' CHECK (role IN ('customer','admin')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- Silvera E-Commerce | PostgreSQL
+-- Jalankan file ini di pgAdmin (Query Tool) pada database kosong, mis. "silvera".
+-- Akun demo (password): admin@silvera.test / admin123 , seller@silvera.test / seller123 , buyer@silvera.test / buyer123
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+DROP TABLE IF EXISTS reviews, order_items, orders, cart_items, products, stores, categories, users CASCADE;
+
+CREATE TABLE users (
+  id            SERIAL PRIMARY KEY,
+  name          VARCHAR(100) NOT NULL,
+  email         VARCHAR(150) NOT NULL UNIQUE,
+  password      TEXT NOT NULL,
+  role          VARCHAR(10) NOT NULL CHECK (role IN ('admin','seller','buyer')),
+  seller_status VARCHAR(10) CHECK (seller_status IN ('pending','approved','rejected')),
+  phone         VARCHAR(30),
+  address       TEXT,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS products (
-  id BIGSERIAL PRIMARY KEY,
-  name VARCHAR(160) NOT NULL,
-  slug VARCHAR(180) NOT NULL UNIQUE,
-  description TEXT NOT NULL DEFAULT '',
-  category VARCHAR(60) NOT NULL,
-  price BIGINT NOT NULL CHECK (price >= 0),
-  stock INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
-  image_url TEXT NOT NULL,
-  tag VARCHAR(40),
-  is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+CREATE TABLE stores (
+  id          SERIAL PRIMARY KEY,
+  user_id     INT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  name        VARCHAR(120) NOT NULL,
+  description TEXT,
+  image_url   TEXT
 );
 
-CREATE TABLE IF NOT EXISTS cart_items (
-  id BIGSERIAL PRIMARY KEY,
-  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  product_id BIGINT NOT NULL REFERENCES products(id),
-  quantity INTEGER NOT NULL CHECK (quantity > 0),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(user_id, product_id)
+CREATE TABLE categories (
+  id   SERIAL PRIMARY KEY,
+  name VARCHAR(80) NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS orders (
-  id BIGSERIAL PRIMARY KEY,
-  user_id BIGINT NOT NULL REFERENCES users(id),
-  order_number VARCHAR(40) NOT NULL UNIQUE,
-  customer_name VARCHAR(120) NOT NULL,
-  phone VARCHAR(30) NOT NULL,
-  shipping_address TEXT NOT NULL,
-  notes TEXT,
-  subtotal BIGINT NOT NULL,
-  shipping_cost BIGINT NOT NULL DEFAULT 0,
-  total BIGINT NOT NULL,
-  payment_method VARCHAR(40) NOT NULL DEFAULT 'manual_transfer',
-  payment_status VARCHAR(30) NOT NULL DEFAULT 'pending',
-  status VARCHAR(30) NOT NULL DEFAULT 'pending',
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+CREATE TABLE products (
+  id          SERIAL PRIMARY KEY,
+  store_id    INT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  category_id INT REFERENCES categories(id) ON DELETE SET NULL,
+  name        VARCHAR(150) NOT NULL,
+  description TEXT NOT NULL,
+  price       INT NOT NULL CHECK (price >= 0),
+  stock       INT NOT NULL CHECK (stock >= 0),
+  image_url   TEXT NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS order_items (
-  id BIGSERIAL PRIMARY KEY,
-  order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-  product_id BIGINT REFERENCES products(id) ON DELETE SET NULL,
-  product_name VARCHAR(160) NOT NULL,
-  unit_price BIGINT NOT NULL,
-  quantity INTEGER NOT NULL CHECK (quantity > 0),
-  line_total BIGINT NOT NULL
+CREATE TABLE cart_items (
+  id         SERIAL PRIMARY KEY,
+  user_id    INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  quantity   INT NOT NULL CHECK (quantity > 0),
+  UNIQUE (user_id, product_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
-CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE TABLE orders (
+  id         SERIAL PRIMARY KEY,
+  buyer_id   INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  total      INT NOT NULL,
+  address    TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
--- Seed products: safe to run repeatedly.
-INSERT INTO products (name, slug, description, category, price, stock, image_url, tag)
-VALUES
-('Studio Headphones','studio-headphones','Headphone over-ear dengan karakter suara seimbang dan desain minimal.','Tech',1249000,12,'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=85','BESTSELLER'),
-('Analog Camera','analog-camera','Kamera compact untuk mengabadikan momen sehari-hari.','Tech',2899000,5,'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=85','LIMITED'),
-('Everyday Backpack','everyday-backpack','Tas harian dengan ruang terorganisasi dan siluet sederhana.','Lifestyle',879000,20,'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=900&q=85','NEW'),
-('Minimal Watch','minimal-watch','Jam tangan bergaya clean untuk penggunaan sehari-hari.','Accessories',1599000,8,'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=85',NULL),
-('Desk Speaker','desk-speaker','Speaker desktop ringkas untuk ruang kerja.','Tech',749000,14,'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=900&q=85',NULL),
-('Ceramic Pour Over','ceramic-pour-over','Peralatan seduh kopi keramik dengan desain sederhana.','Lifestyle',329000,25,'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=85',NULL),
-('Leather Cardholder','leather-cardholder','Cardholder ringkas untuk kebutuhan esensial.','Accessories',259000,30,'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=900&q=85',NULL),
-('Sculptural Lamp','sculptural-lamp','Lampu meja dengan bentuk modern dan cahaya hangat.','Lifestyle',989000,9,'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=900&q=85','NEW')
-ON CONFLICT (slug) DO NOTHING;
+-- Status disimpan per item agar tiap toko mengelola pesanannya sendiri.
+CREATE TABLE order_items (
+  id           SERIAL PRIMARY KEY,
+  order_id     INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id   INT REFERENCES products(id) ON DELETE SET NULL,
+  store_id     INT REFERENCES stores(id) ON DELETE SET NULL,
+  product_name VARCHAR(150) NOT NULL,
+  price        INT NOT NULL,
+  quantity     INT NOT NULL CHECK (quantity > 0),
+  status       VARCHAR(30) NOT NULL DEFAULT 'Menunggu Pembayaran'
+               CHECK (status IN ('Menunggu Pembayaran','Diproses','Dikirim','Selesai'))
+);
+
+CREATE TABLE reviews (
+  id         SERIAL PRIMARY KEY,
+  product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  user_id    INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  rating     INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment    TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (product_id, user_id)
+);
+
+-- ===== Data awal =====
+INSERT INTO users (name,email,password,role,seller_status) VALUES
+ ('Administrator','admin@silvera.test', crypt('admin123', gen_salt('bf')), 'admin', NULL),
+ ('Toko Demo','seller@silvera.test',   crypt('seller123', gen_salt('bf')), 'seller','approved'),
+ ('Budi Pembeli','buyer@silvera.test', crypt('buyer123', gen_salt('bf')), 'buyer', NULL);
+
+INSERT INTO stores (user_id,name,description,image_url) VALUES
+ (2,'Silver Lab','Gadget dan aksesori bergaya minimalis.',NULL);
+
+INSERT INTO categories (name) VALUES ('Elektronik'),('Fashion'),('Buku'),('Rumah Tangga');
+
+INSERT INTO products (store_id,category_id,name,description,price,stock,image_url) VALUES
+ (1,1,'Headphone Nirkabel Graphite','Headphone over-ear dengan peredam bising dan baterai 40 jam.',1250000,20,'https://picsum.photos/seed/headphone/600/600'),
+ (1,1,'Keyboard Mekanik Silver','Keyboard 75% hot-swap dengan casing aluminium.',980000,15,'https://picsum.photos/seed/keyboard/600/600'),
+ (1,2,'Jaket Bomber Hitam','Jaket ringan tahan angin untuk harian.',450000,30,'https://picsum.photos/seed/jacket/600/600'),
+ (1,3,'Buku Desain Minimalis','Panduan membangun antarmuka yang bersih dan fungsional.',150000,50,'https://picsum.photos/seed/book/600/600'),
+ (1,4,'Lampu Meja Aluminium','Lampu meja LED dengan tiga mode cahaya.',320000,25,'https://picsum.photos/seed/lamp/600/600'),
+ (1,1,'Smartwatch Steel','Jam pintar dengan body stainless dan GPS.',1750000,10,'https://picsum.photos/seed/watch/600/600');
