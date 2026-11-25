@@ -1,89 +1,113 @@
-# NEXA — E-Commerce Marketplace
+# NEXA. — Platform E-Commerce Modern & Minimalis
 
-Website e-commerce dengan tema visual **Dark & Light Modern Luxury Marketplace**, dibuat menggunakan Next.js App Router, JSX, Tailwind CSS, Framer Motion, PostgreSQL, dan Raw SQL.
+> **Marketplace E-Commerce Tema Gelap & Terang** yang dibangun menggunakan **Next.js App Router**, **JSX**, **Tailwind CSS**, **Framer Motion**, **PostgreSQL**, dan **Raw SQL**.
 
-## 1. Persyaratan
-- Node.js 20.9 atau lebih baru
-- PostgreSQL 14 atau lebih baru
-- pgAdmin (untuk menjalankan file SQL)
+## ✨ Keunggulan Utama
 
-## 2. Instalasi
-1. Extract folder project.
-2. Buka terminal di folder `ecommerce-darklight`.
-3. Jalankan:
+* **Pengalaman Tema Gelap & Terang**: Transisi mode gelap dan terang yang mulus dengan inisialisasi *inline script* untuk mencegah *flash* tampilan saat memuat halaman.
+* **Kontrol Akses Berbasis Peran (RBAC)**: Alur terpisah dan penjagaan sisi *server* untuk **Guest**, **Buyer**, **Seller**, dan **Admin**.
+* **Checkout Transaksional**: Transaksi atomik PostgreSQL (`BEGIN` / `COMMIT` / `ROLLBACK`) dengan *row locking* (`FOR UPDATE`) untuk membuat *order* dan *order items*, memotong stok produk, serta mengosongkan keranjang pembeli.
+* **Rating & Ulasan Setelah Pesanan Selesai**: Pembeli dapat memberikan rating dan ulasan setelah status pesanan mencapai `Selesai`.
+* **Verifikasi Seller & Moderasi Konten**: Alur pendaftaran *seller* berstatus *pending* dengan persetujuan/penolakan dari Admin, pengelolaan toko, CRUD produk, manajemen kategori, manajemen pengguna, dan moderasi produk.
+
+## 🛠️ Teknologi yang Digunakan
+
+| Lapisan | Teknologi |
+| :--- | :--- |
+| **Framework** | Next.js (App Router, JSX, Server Actions) |
+| **Styling & Animasi** | Tailwind CSS, Framer Motion, Lucide Icons |
+| **Database** | PostgreSQL (`pg` *connection pool* + *parameterized Raw SQL* `$1`, `$2`, ...) |
+| **Autentikasi** | *Password hashing* `bcryptjs` + JWT `jose` di dalam *cookie* `httpOnly` |
+
+## 🚀 Panduan Menjalankan Proyek
+
+### 1. Kebutuhan Awal
+
+* **Node.js** versi 20.9 atau lebih baru
+* **PostgreSQL** versi 14 atau lebih baru
+* **pgAdmin** (untuk menjalankan skrip SQL database)
+
+### 2. Langkah Instalasi
+
+1. Ekstrak atau *clone* folder proyek, lalu buka terminal di direktori proyek.
+2. Instal seluruh *dependencies*:
+
    ```bash
    npm install
    ```
-4. Buat database PostgreSQL bernama `nexa_market` melalui pgAdmin.
-5. Buka Query Tool pada database tersebut, lalu jalankan seluruh isi file `sql/schema.sql`.
-6. Salin `.env.example` menjadi `.env.local`, kemudian sesuaikan `DATABASE_URL` dan `JWT_SECRET`.
+
+3. Buat database baru bernama `nexa_market` melalui **pgAdmin**.
+4. Buka **Query Tool** pada database `nexa_market` dan jalankan seluruh isi berkas SQL yang tersedia di luar folder `/app` (misalnya `schema.sql` / `database.sql`).
+5. Salin `.env.example` menjadi `.env.local`, lalu sesuaikan konfigurasinya:
+
    ```env
-   DATABASE_URL=postgresql://postgres:password@localhost:5432/Nama_Database
+   DATABASE_URL=postgresql://postgres:password@localhost:5432/nexa_market
    JWT_SECRET=ganti_dengan_secret_random_minimal_32_karakter
    NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
-7. Jalankan project:
+
+6. Jalankan *development server*:
+
    ```bash
    npm run dev
    ```
-8. Buka `http://localhost:3000`.
 
-## 3. Akun demo
-- Admin: `admin@nexa.local`
-- Password: `Admin123!`
+7. Buka `http://localhost:3000` di *browser*.
 
-Buyer dan Seller dapat dibuat melalui halaman Register. Seller otomatis berstatus `pending` dan harus disetujui Admin sebelum dashboard dapat digunakan.
+## 🔐 Akun Demo
 
-## 4. Fitur yang tersedia
+* **Email Admin**: `admin@nexa.local`
+* **Password Admin**: `Admin123!`
 
-### Public / Guest
-- Homepage editorial dengan hero, kategori, dan rekomendasi produk.
-- Katalog produk dan pencarian berdasarkan nama produk/toko.
-- Filter kategori dan sorting harga.
-- Detail produk, informasi toko, stok, rating, dan ulasan.
-- Guest diarahkan ke login ketika mencoba menambah produk ke keranjang.
+> Akun **Buyer** dan **Seller** dapat didaftarkan langsung melalui halaman `/register`. Akun **Seller** baru akan berstatus `pending` dan memerlukan persetujuan **Admin** sebelum dapat mengakses *workspace* penjual.
 
-### Buyer
-- Register dan login.
-- Profil dasar dan pengubahan nama/email.
-- Menambahkan produk ke cart, mengubah kuantitas, dan menghapus item dengan kuantitas 0.
-- Checkout membuat order dan order items secara transaksional; stok berkurang dan cart dikosongkan.
-- Melihat riwayat pesanan dan status.
-- Memberi rating/review setelah order berstatus `Selesai`.
+## 🧩 Fitur Berdasarkan Peran
 
-### Seller
-- Registrasi dengan status pending dan halaman menunggu approval.
-- Mengelola nama, deskripsi, dan gambar toko.
-- CRUD produk milik toko sendiri (create, edit, delete) termasuk stok, kategori, harga, deskripsi, dan gambar.
-- Melihat pesanan masuk dan memperbarui status pesanan.
+### 🌐 Guest (Pengunjung Publik)
 
-### Admin
-- Ringkasan statistik pengguna, produk, dan pesanan.
-- Approve/reject pendaftaran Seller.
-- Melihat, mengubah informasi/status, dan menghapus pengguna non-admin.
-- CRUD kategori (tambah, ubah, hapus jika belum dipakai produk).
-- Moderasi dengan menghapus produk.
+* Halaman beranda editorial dengan *hero showcase*, kategori, dan sorotan produk.
+* Pencarian katalog produk (berdasarkan nama produk atau nama toko), filter kategori, serta *sorting* harga.
+* Halaman detail produk lengkap dengan informasi toko, ketersediaan stok, rating, dan ulasan.
+* Mengarahkan ke `/login` saat pengunjung mencoba menambahkan barang ke keranjang belanja.
 
-## 5. Struktur folder
+### 🛍️ Buyer (Pembeli)
+
+* Registrasi akun, *login*, serta pengelolaan profil (nama dan email).
+* Menambah produk ke keranjang, mengubah jumlah item, atau menghapus item jika jumlahnya diatur menjadi `0`.
+* *Checkout* transaksional yang mencatat pesanan, mengurangi stok produk, dan mengosongkan keranjang.
+* Riwayat pesanan dan pelacakan status pesanan, serta pengiriman rating dan ulasan pada pesanan berstatus `Selesai`.
+
+### 🏪 Seller (Penjual)
+
+* Halaman status verifikasi (`/pending`) saat menunggu persetujuan Admin (serta opsi hapus akun jika ditolak).
+* Pengelolaan informasi toko (nama, deskripsi, dan gambar toko).
+* CRUD penuh untuk produk milik toko sendiri (nama, deskripsi, harga, stok, kategori, dan gambar).
+* Melihat pesanan masuk dan memperbarui status pesanan (`Diproses`, `Dikirim`, `Selesai`).
+
+### 🛡️ Admin (Administrator)
+
+* Ringkasan statistik platform (jumlah pengguna, produk, dan pesanan).
+* Menyetujui (*Approve*) atau menolak (*Reject*) pendaftaran akun **Seller** yang berstatus *pending*.
+* Melihat, memperbarui data/status, dan menghapus akun pengguna non-admin yang memenuhi syarat.
+* Menambah, mengedit, dan menghapus kategori produk secara aman (mencegah penghapusan kategori yang masih dipakai produk).
+* Memoderasi katalog dengan menghapus produk yang melanggar ketentuan.
+
+## 📁 Struktur Proyek
+
 ```text
-app/                 Halaman Next.js dan route UI
-components/          Navbar, footer, product card, auth form, reveal animation
-lib/db.js            PostgreSQL connection pool
-lib/auth.js          Session JWT berbasis cookie httpOnly
-lib/actions.js       Server Actions untuk autentikasi dan transaksi
-lib/data.js          Query produk dan data fallback demo
-sql/schema.sql       DDL, index, seed admin, kategori, dan produk demo
-.env.example         Contoh environment variables
+app/                 Halaman dan layout Next.js App Router
+components/          Navbar, Footer, ProductCard, AuthForm, Reveal, dll.
+lib/
+  ├── db.js          Koneksi pool PostgreSQL dan helper query
+  ├── auth.js        Pembuatan sesi JWT, verifikasi, dan logout (cookie httpOnly)
+  ├── actions.js     Server Actions untuk autentikasi, cart, checkout, review & CMS
+  └── data.js        Query produk, helper format rupiah, dan data fallback demo
+.env.example         Template variabel lingkungan
 ```
 
-## 6. Catatan implementasi
-- Query database menggunakan PostgreSQL `pg` dan Raw SQL parameterized (`$1`, `$2`, dst.).
-- Password disimpan dalam bentuk hash bcrypt.
-- Session menggunakan JWT pada cookie `httpOnly`.
-- Proteksi role dilakukan pada Server Component dan Server Actions.
-- Animasi menggunakan Framer Motion, CSS hover transitions, marquee, dan reveal-on-scroll.
-- Tombol checkout tidak mengintegrasikan payment gateway sesuai ketentuan PDF.
-- Untuk deployment, wajib mengganti `JWT_SECRET`, mengaktifkan HTTPS, dan meninjau ulang validasi serta kebijakan keamanan sesuai kebutuhan produksi.
+## 📝 Catatan Implementasi
 
-## 7. Kesesuaian dengan PDF
-Rancangan mengikuti tema Individual Project 1: E-Commerce pada halaman 3–8 PDF, termasuk empat role (Admin, Seller, Buyer, Guest), Product Management, User Management, Cart Management, Store Management, Order Management, Category Management, serta halaman publik dan dashboard per role.
+* Seluruh *query* database menggunakan *parameterized Raw SQL* (`$1`, `$2`, ...) melalui `pg`.
+* Pengecekan *role* dan status akun diterapkan pada *Server Components* maupun *Server Actions*.
+* Alur *checkout* tidak menggunakan *payment gateway* sesuai ketentuan proyek.
+* Sebelum *deployment* produksi, pastikan mengganti `JWT_SECRET`, mengaktifkan HTTPS, dan meninjau ulang konfigurasi keamanan.
