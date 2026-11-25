@@ -11,14 +11,14 @@ export default async function Home() {
   return (
     <>
       <section className="container-x pt-8">
-        <div className="relative min-h-[590px] overflow-hidden rounded-[4px] bg-[#171815] text-white">
+        <div className="relative min-h-147.5 overflow-hidden rounded-sm bg-[#171815] text-white">
           <HeroSlideshow />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/25 to-transparent" />
-          <div className="relative flex min-h-[590px] flex-col justify-between p-8 sm:p-14 lg:p-20">
+          <div className="absolute inset-0 bg-linear-to-r from-black/75 via-black/25 to-transparent" />
+          <div className="relative flex min-h-147.5 flex-col justify-between p-8 sm:p-14 lg:p-20">
             <div className="flex items-center gap-3 text-[10px] uppercase tracking-[.28em]">
               <span className="h-px w-8 bg-lime-300" /> Curated for the everyday
             </div>
-            <div className="max-w-[680px]">
+            <div className="max-w-170">
               <Reveal>
                 <p className="mb-5 text-xs uppercase tracking-[.3em] text-lime-300">
                   Objects with intention — 2026 collection
@@ -60,7 +60,7 @@ export default async function Home() {
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
           <div>
             <p className="muted text-[10px] font-bold uppercase tracking-[.25em]">Browse by interest</p>
-            <h2 className="mt-3 text-4xl font-semibold tracking-[-.05em] sm:text-5xl">
+            <h2 className="mt-3 text-4xl font-semibold tracking-tighter sm:text-5xl">
               A little bit of <span className="font-serif italic font-normal">everything.</span>
             </h2>
           </div>
@@ -85,7 +85,7 @@ export default async function Home() {
                 className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                 alt={c.name}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/65 via-transparent to-transparent" />
               <div className="absolute bottom-5 left-5 text-white">
                 <p className="text-lg font-semibold">{c.name}</p>
                 <p className="mt-1 text-[11px] text-white/70">{c.sub}</p>
@@ -105,7 +105,7 @@ export default async function Home() {
         >
           <div>
             <p className="muted text-[10px] font-bold uppercase tracking-[.25em]">Handpicked for you</p>
-            <h2 className="mt-3 text-4xl font-semibold tracking-[-.05em]">
+            <h2 className="mt-3 text-4xl font-semibold tracking-tighter">
               The latest <span className="font-serif italic font-normal">edit.</span>
             </h2>
           </div>
@@ -124,7 +124,7 @@ export default async function Home() {
         <div className="container-x grid items-center gap-10 md:grid-cols-2">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[.25em] text-lime-400">Less, but considered</p>
-            <h2 className="mt-5 text-5xl leading-[1.02] font-semibold tracking-[-.05em] sm:text-6xl">
+            <h2 className="mt-5 text-5xl leading-[1.02] font-semibold tracking-tighter sm:text-6xl">
               Good things.
               <br />
               <span className="font-serif font-normal italic">Good everyday.</span>

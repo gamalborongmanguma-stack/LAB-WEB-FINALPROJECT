@@ -21,21 +21,24 @@ export default function HeroSlideshow() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
+    if (HERO_SLIDES.length <= 1) return;
+
     const timer = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % HERO_SLIDES.length);
     }, 5500);
+
     return () => clearInterval(timer);
   }, []);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[#171815]">
-      {HERO_SLIDES.map((slide, i) => (
+      {HERO_SLIDES.map((slide, index) => (
         <img
           key={slide.src}
           src={slide.src}
           alt={slide.alt}
           className={`hero-slide absolute inset-0 h-full w-full object-cover ${
-            i === activeIndex ? 'is-active' : ''
+            index === activeIndex ? 'is-active' : ''
           }`}
         />
       ))}
