@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-
-=======
-# Silvera — E-Commerce (Next.js + Tailwind + PostgreSQL)
-
-Tema: dark graphite + white-silver. Raw SQL (`pg`), auth JWT cookie (`jose` + `bcryptjs`), Server Actions.
-
 ## Menjalankan
 1. Buat database kosong `silvera` di pgAdmin, lalu jalankan `database/schema.sql` (Query Tool).
 2. `cp .env.example .env` dan sesuaikan `DATABASE_URL` + `AUTH_SECRET`.
