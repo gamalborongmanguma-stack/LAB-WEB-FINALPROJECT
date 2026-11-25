@@ -1,2 +1,78 @@
-import {getProducts} from '@/lib/data';import ProductCard from '@/components/ProductCard';import {SlidersHorizontal} from 'lucide-react';
-export default async function Products({searchParams}){const params=await searchParams;const q=String(params?.q||'').toLowerCase(),cat=String(params?.category||''),sort=String(params?.sort||'newest');let products=await getProducts();if(q)products=products.filter(p=>p.name.toLowerCase().includes(q)||String(p.store_name).toLowerCase().includes(q));if(cat)products=products.filter(p=>p.category===cat);if(sort==='low')products.sort((a,b)=>a.price-b.price);if(sort==='high')products.sort((a,b)=>b.price-a.price);return <div className="container-x py-14"><div className="border-b pb-9" style={{borderColor:'var(--line)'}}><p className="muted text-[10px] font-bold uppercase tracking-[.25em]">The NEXA selection</p><h1 className="mt-3 text-5xl font-semibold tracking-[-.06em]">All <span className="font-serif italic font-normal">products.</span></h1><p className="muted mt-3 text-sm">Thoughtful finds for every part of your everyday.</p></div><form className="mt-8 grid gap-3 sm:grid-cols-[1fr_220px_180px]"><div><input name="q" defaultValue={q} placeholder="Search products or stores..." className="input"/></div><select name="category" defaultValue={cat} className="input"><option value="">All categories</option>{['Elektronik','Fashion','Rumah & Living','Aksesori','Kecantikan'].map(x=><option key={x}>{x}</option>)}</select><select name="sort" defaultValue={sort} className="input"><option value="newest">Newest</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option></select><button className="btn-primary sm:col-span-3 sm:justify-self-end">Apply filters <SlidersHorizontal className="ml-2 inline" size={14}/></button></form><p className="muted mt-8 text-xs">Showing {products.length} products</p><div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-9 md:grid-cols-4 md:gap-x-6">{products.map((p,i)=><ProductCard key={p.id} product={p} index={i}/>)}</div>{!products.length&&<p className="muted py-24 text-center">No products found. Try another search.</p>}</div>}
+import { getProducts } from '@/lib/data';
+import ProductCard from '@/components/ProductCard';
+import ProductFilters from '@/components/ProductFilters';
+
+function filterAndSortProducts(items, { q, category, sort }) {
+  let result = [...items];
+
+  if (q) {
+    result = result.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        String(p.store_name).toLowerCase().includes(q)
+    );
+  }
+
+  if (category) {
+    result = result.filter((p) => p.category === category);
+  }
+
+  if (sort === 'low') {
+    result.sort((a, b) => a.price - b.price);
+  } else if (sort === 'high') {
+    result.sort((a, b) => b.price - a.price);
+  }
+
+  return result;
+}
+
+export default async function Products({ searchParams }) {
+  const params = await searchParams;
+  const rawQ = String(params?.q || '');
+  const category = String(params?.category || '');
+  const sort = String(params?.sort || 'newest');
+
+  const allProducts = await getProducts();
+  const products = filterAndSortProducts(allProducts, {
+    q: rawQ.toLowerCase(),
+    category,
+    sort,
+  });
+
+  return (
+    <div className="container-x py-14">
+      <div className="border-b pb-9" style={{ borderColor: 'var(--line)' }}>
+        <p className="muted text-[10px] font-bold uppercase tracking-[.25em]">
+          The NEXA selection
+        </p>
+        <h1 className="mt-3 text-5xl font-semibold tracking-[-.06em]">
+          All <span className="font-serif italic font-normal">products.</span>
+        </h1>
+        <p className="muted mt-3 text-sm">
+          Thoughtful finds for every part of your everyday.
+        </p>
+      </div>
+
+      <ProductFilters
+        key={`${rawQ}-${category}-${sort}`}
+        initialQ={rawQ}
+        initialCat={category}
+        initialSort={sort}
+      />
+
+      <p className="muted mt-8 text-xs">Showing {products.length} products</p>
+
+      <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-9 md:grid-cols-4 md:gap-x-6">
+        {products.map((product, index) => (
+          <ProductCard key={product.id} product={product} index={index} />
+        ))}
+      </div>
+
+      {!products.length && (
+        <p className="muted py-24 text-center">
+          No products found. Try another search.
+        </p>
+      )}
+    </div>
+  );
+}
